@@ -1,0 +1,3 @@
+call program()
+
+print("Finished!")
