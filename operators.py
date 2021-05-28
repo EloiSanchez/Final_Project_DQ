@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import erf
 
+
 def sixth_laplacian(n, dx):
     lap = np.zeros((n, n))
     for i in range(n):
@@ -27,8 +28,17 @@ def kin(n, m, dx):
     m : Mass of the particle
     dx : Self explanatory
     """
-    return sixth_laplacian(n, dx) / (2 * m)
+    return - sixth_laplacian(n, dx) / (2 * m)
 
 
-def softCoulomb():
-    pass
+def softCoulombFixed(pos1, pos2, rC):
+    """
+    Returns the soft-core Coulomb interaction energy of two ions parametrized by rC
+    pos1 : (array) Positions to evaluate the "moving" ion
+    pos2 : (float) Position of the fixed ion
+    rC : (float) Paramater of the soft-core Coulomb potential
+    """
+    x = np.abs(pos1 - pos2) / rC
+    return np.diag(np.where(x <= 1e-6,                    # Condition
+        2 * (1 - (x ** 2) / 3) / (rC * np.sqrt(np.pi)),   # If True
+        erf(x) / (rC * x)))                               # If False
