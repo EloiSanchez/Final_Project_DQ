@@ -17,3 +17,13 @@ def sixth_laplacian(n, dx):
         if (n - i > 3):
             lap[i, i+3] = 1 / 90
     return lap / (dx * dx)
+
+
+def kin(n, m, dx):
+    """
+    Returns the matrix representation of the kinetic operator
+    n : Dimension of the space
+    m : Mass of the particle
+    dx : Self explanatory
+    """
+    return sixth_laplacian(n, dx) / (2 * m)
