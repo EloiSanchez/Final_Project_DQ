@@ -8,7 +8,7 @@ import operators as op
 L = 19. # Distance between the fixed ions
 
 # Electron grid
-eDim = 101
+eDim = 100
 eSpace = np.linspace(-L/2, L/2, eDim)
 eEye = np.identity(eDim)
 
@@ -22,13 +22,13 @@ nEye = np.identity(nDim)
 ########### Laplacian test ###########
 ######################################
 
-print(op.sixth_laplacian(10, 1, 0.1))
-
 y = np.sin(eSpace)
-ddy = np.matmul(op.sixth_laplacian(eDim, 1, eSpace[1] - eSpace[0]), y)
+ddy = np.matmul(op.sixth_laplacian(eDim, eSpace[1] - eSpace[0]), y)
+anal = -np.sin(eSpace)
 
 plt.plot(eSpace, y, label="func")
 plt.plot(eSpace, ddy, label="ddy")
+plt.plot(eSpace, anal, label="analytical")
 
 plt.legend()
 plt.show()

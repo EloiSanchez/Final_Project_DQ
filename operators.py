@@ -1,6 +1,6 @@
 import numpy as np
 
-def sixth_laplacian(n, m, dx):
+def sixth_laplacian(n, dx):
     lap = np.zeros((n, n))
     for i in range(n):
         lap[i,i] = -49 / 18
@@ -16,4 +16,4 @@ def sixth_laplacian(n, m, dx):
             lap[i, i+2] = -3 / 20
         if (n - i > 3):
             lap[i, i+3] = 1 / 90
-    return -0.5 * lap / (m * dx * dx)
+    return lap / (dx * dx)
