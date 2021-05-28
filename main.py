@@ -8,27 +8,33 @@ import operators as op
 L = 19. # Distance between the fixed ions
 
 # Electron grid
-eDim = 100
-eSpace = np.linspace(-L/2, L/2, eDim)
-eEye = np.identity(eDim)
+elecDim = 101
+elecSpace = np.linspace(-L/2, L/2, elecDim)
+elecDx = elecSpace[1] - elecSpace[0]
+elecEye = np.identity(elecDim)
 
 # Nucleus grid
-nDim = 21
-nSpace = np.linspace(-L/2, L/2, nDim)
-nEye = np.identity(nDim)
+nucDim = 21
+nucSpace = np.linspace(-L/2, L/2, nucDim)
+nucDx = nucSpace[1] - nucSpace[0]
+nucEye = np.identity(nucDim)
 
 
 ######################################
 ########### Laplacian test ###########
 ######################################
 
-y = np.sin(eSpace)
-ddy = np.matmul(op.sixth_laplacian(eDim, eSpace[1] - eSpace[0]), y)
-anal = -np.sin(eSpace)
+y = np.sin(elecSpace)
+ddy = np.matmul(op.sixth_laplacian(elecDim, elecSpace[1] - elecSpace[0]), y)
+anal = -np.sin(elecSpace)
 
-plt.plot(eSpace, y, label="func")
-plt.plot(eSpace, ddy, label="ddy")
-plt.plot(eSpace, anal, label="analytical")
+plt.plot(elecSpace, y, label="func")
+plt.plot(elecSpace, ddy, label="ddy")
+plt.plot(elecSpace, anal, label="analytical")
 
 plt.legend()
 plt.show()
+
+######################################
+
+eHam = op.kin(elecDim, 1, elecDx)  # + potential operators to be done

@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import erf
 
 def sixth_laplacian(n, dx):
     lap = np.zeros((n, n))
@@ -27,3 +28,7 @@ def kin(n, m, dx):
     dx : Self explanatory
     """
     return sixth_laplacian(n, dx) / (2 * m)
+
+
+def softCoulomb():
+    pass
