@@ -31,7 +31,7 @@ def kin(n, m, dx):
     return - sixth_laplacian(n, dx) / (2 * m)
 
 
-def softCoulombFixed(pos1, pos2, rC):
+def softCoulomb(pos1, pos2, rC):
     """
     Returns the soft-core Coulomb interaction energy of two ions parametrized by rC
     pos1 : (array) Positions to evaluate the "moving" ion
@@ -39,6 +39,10 @@ def softCoulombFixed(pos1, pos2, rC):
     rC : (float) Paramater of the soft-core Coulomb potential
     """
     x = np.abs(pos1 - pos2) / rC
-    return np.diag(np.where(x <= 1e-6,                    # Condition
+    result = np.where(x <= 1e-6,                          # Condition
         2 * (1 - (x ** 2) / 3) / (rC * np.sqrt(np.pi)),   # If True
-        erf(x) / (rC * x)))                               # If False
+        erf(x) / (rC * x))                                # If False
+    if np.ndim(pos1) == 1:
+        return np.diag(result)
+    else:
+        return result
