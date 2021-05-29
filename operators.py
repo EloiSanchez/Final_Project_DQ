@@ -33,7 +33,10 @@ def kin(n, m, dx):
 
 def softCoulomb(pos1, pos2, rC):
     """
-    Returns the soft-core Coulomb interaction energy of two ions parametrized by rC
+    Returns the soft-core Coulomb interaction energy of two ions parametrized 
+    by rC. If pos1 is a vector it returns the matrix representation, if it is a
+    matrix (coming from a meshgrid) it returns the potential evaluated at all
+    points in the pos1 matrix.
     pos1 : (array) Positions to evaluate the "moving" ion
     pos2 : (float) Position of the fixed ion
     rC : (float) Paramater of the soft-core Coulomb potential

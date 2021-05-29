@@ -1,11 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.core.numeric import full
 from scipy.integrate import simpson
 from scipy.linalg import eigh
 import helperFuncs as hf
 import operators as op
 
-## System parameters
+#################################################################
+##################  Input & System parameters  ##################
+#################################################################
+
 # Control parameters
 numEigStates = 3 # Number of eigenstates to find
 L = 19. # Distance between the fixed ions
@@ -22,9 +26,59 @@ nucSpace = np.linspace(-L/2, L/2, nucDim)
 nucDx = nucSpace[1] - nucSpace[0]
 nucEye = np.identity(nucDim)
 
-######################################
-########### Laplacian test ###########
-######################################
+# Interaction parameters
+leftR = 4.4
+rightR = 3.1
+elecNucR = 7.
+
+#################################################################
+
+#################################################################
+#############  Finding the potential in full-space  #############
+#################################################################
+
+# Obtain X and Y
+[nucMeshGrid, elecMeshGrid] = np.meshgrid(nucSpace, elecSpace)  
+
+# Obtain Z
+fullSpacePot = - op.softCoulomb(elecMeshGrid, nucMeshGrid, elecNucR) \
+    - op.softCoulomb(elecMeshGrid, -L/2, leftR) \
+    - op.softCoulomb(elecMeshGrid, L/2, rightR) \
+    + 1 / np.abs(nucMeshGrid - L/2) + 1 / np.abs(nucMeshGrid + L/2)
+
+# Create figure
+figFullPot = plt.figure(figsize=(6.4*1.2,4.8))
+axFullPot = figFullPot.add_subplot()
+
+# Format Figure
+contourLims = [-0.4, 0.4]  # zmax and zmin
+axFullPot.set_xlim(-8.2,5) 
+axFullPot.set_ylim(-16,16)
+
+axFullPot.set_title("Potential Energy Surface in full-space")
+axFullPot.set_xlabel(r"$R$ (a.u.)")
+axFullPot.set_ylabel(r"$r$ (a.u.)")
+
+colorMap = "viridis" # Check https://tinyurl.com/3a4y73kj for more
+
+# Plot figure
+imf = axFullPot.contourf(nucSpace, elecSpace, fullSpacePot, cmap=colorMap,\
+    vmin=contourLims[0], vmax=contourLims[1], \
+    levels=np.linspace(contourLims[0], contourLims[1], 18))
+
+imc = axFullPot.contour(nucSpace, elecSpace, fullSpacePot, colors="black",\
+    linewidths=0.5, linestyles="solid", \
+    levels=np.linspace(contourLims[0], contourLims[1], 18))
+
+colorBar = figFullPot.colorbar(imf, format="%.2f")
+
+plt.show()
+
+#################################################################
+
+##################################################################
+######################### Laplacian test #########################
+##################################################################
 
 # y = np.sin(elecSpace)
 # ddy = np.matmul(op.sixth_laplacian(elecDim, elecSpace[1] - elecSpace[0]), y)
@@ -41,10 +95,14 @@ nucEye = np.identity(nucDim)
 
 # fig.savefig("foto.png")
 
-#####################################
+##################################################################
 
-potLeft = op.softCoulombFixed(elecSpace, -L/2, 4.4)
-potRight = op.softCoulombFixed(elecSpace, L/2, 3.1)
+#################################################################
+########### Diagonalization of electronic hamiltonian ###########
+#################################################################
+
+potLeft = op.softCoulomb(elecSpace, -L/2, leftR)
+potRight = op.softCoulomb(elecSpace, L/2, rightR)
 
 elecHam = op.kin(elecDim, 1, elecDx) - potLeft - potRight # + potential operators to be done
 
@@ -53,34 +111,26 @@ elecEigenstates = np.zeros((elecDim, numEigStates, nucDim))
 elecEigenvalues = np.zeros((numEigStates, nucDim))
 
 for i in range(nucDim):
-    elecHamR.append(elecHam - op.softCoulombFixed(elecSpace, nucSpace[i], 7))
+    elecHamR.append(elecHam - op.softCoulomb(elecSpace, nucSpace[i], elecNucR))
     elecEigenvalues[:,i], elecEigenstates[:,:,i] = eigh(elecHamR[i], subset_by_index=[0, numEigStates - 1])
 
-fig3 = plt.figure(figsize=(6.4*2, 4.8))
-ax3_vals = fig3.add_subplot(121)
-ax3_states = fig3.add_subplot(122)
+figEign = plt.figure(figsize=(6.4*2, 4.8))
+axEignVals = figEign.add_subplot(121)
+axEignStates = figEign.add_subplot(122)
 
 elecEigenvalues += 1 / np.abs(nucSpace - L/2) + 1 / np.abs(nucSpace + L/2)
 
 for i in range(numEigStates):
-    ax3_vals.plot(nucSpace, elecEigenvalues[i,:], label="state {}".format(i))
-    ax3_states.plot(elecSpace, elecEigenstates[:,i,nucDim//2], label="state {}".format(i))
+    axEignVals.plot(nucSpace, elecEigenvalues[i,:], label="state {}".format(i))
+    axEignStates.plot(elecSpace, elecEigenstates[:,i,nucDim//2], label="state {}".format(i))
 
-ax3_vals.set_ylim((-0.25,0.1))
-ax3_vals.legend()
-ax3_vals.set_title("BOPES")
+axEignVals.set_ylim((-0.25,0.1))
+axEignVals.legend()
+axEignVals.set_title("BOPES")
 
-ax3_states.legend()
-ax3_states.set_title(r"Eigenstates with $R={}$".format(nucSpace[nucDim//2]))
-
-#####################################
-# Per veure els eigenstates descomentar aquest codi
-# fig4 = plt.figure()
-# ax4 = fig4.add_subplot()
-# ax4.plot(elecSpace, np.abs(elecEigenstates[:,0,1]), label="state 1")
-# ax4.plot(elecSpace, np.abs(elecEigenstates[:,1,1]), label="state 2")
-# ax4.plot(elecSpace, np.abs(elecEigenstates[:,2,1]), label="state 3")
-# ax4.legend()
-#####################################
+axEignStates.legend()
+axEignStates.set_title(r"Eigenstates with $R={}$".format(nucSpace[nucDim//2]))
 
 plt.show()
+
+#################################################################
