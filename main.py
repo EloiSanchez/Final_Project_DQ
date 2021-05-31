@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.core import numeric
 from numpy.core.numeric import full
 from scipy.integrate import simpson
 from scipy.linalg import eigh
@@ -13,6 +14,7 @@ import operators as op
 # Control parameters
 numEigStates = 3 # Number of eigenstates to find
 L = 19. # Distance between the fixed ions
+M = 1863. #Proton mass
 
 # Electron grid
 elecDim = 401
@@ -72,7 +74,7 @@ imc = axFullPot.contour(nucSpace, elecSpace, fullSpacePot, colors="black",\
 
 colorBar = figFullPot.colorbar(imf, format="%.2f")
 
-plt.show()
+# plt.show()
 
 #################################################################
 
@@ -113,6 +115,16 @@ elecEigenvalues = np.zeros((numEigStates, nucDim))
 for i in range(nucDim):
     elecHamR.append(elecHam - op.softCoulomb(elecSpace, nucSpace[i], elecNucR))
     elecEigenvalues[:,i], elecEigenstates[:,:,i] = eigh(elecHamR[i], subset_by_index=[0, numEigStates - 1])
+    for j in range(numEigStates):
+        elecEigenstates[:,j,i] /= np.sqrt(simpson(elecEigenstates[:,j,i] * elecEigenstates[:,j,i], dx=elecDx))
+
+limit = 0.05
+for i in range(1, nucDim):
+    for j in range(numEigStates):
+        aux = np.sum(elecEigenstates[:,j,i-1]*elecEigenstates[:,j,i])*elecDx
+        if aux<limit:
+            elecEigenstates[:,j,i]*=-1
+
 
 figEign = plt.figure(figsize=(6.4*2, 4.8))
 axEignVals = figEign.add_subplot(121)
@@ -122,15 +134,47 @@ elecEigenvalues += 1 / np.abs(nucSpace - L/2) + 1 / np.abs(nucSpace + L/2)
 
 for i in range(numEigStates):
     axEignVals.plot(nucSpace, elecEigenvalues[i,:], label="state {}".format(i))
-    axEignStates.plot(elecSpace, elecEigenstates[:,i,nucDim//2], label="state {}".format(i))
+    axEignStates.plot(elecSpace, elecEigenstates[:,i,nucDim//2]**2, label=r"$|\Psi_{}|^2$".format(i))
 
 axEignVals.set_ylim((-0.25,0.1))
 axEignVals.legend()
 axEignVals.set_title("BOPES")
+axEignVals.set_xlabel(r"$R$ (a.u)")
+axEignVals.set_ylabel("Energy (a.u.)")
 
 axEignStates.legend()
 axEignStates.set_title(r"Eigenstates with $R={}$".format(nucSpace[nucDim//2]))
+axEignStates.set_ylabel(r"Probability densities (Bohr$^-1$)")
+axEignStates.set_xlabel(r"$r$ (a.u)")
 
+# plt.show()
+
+#################################################################
+
+#################################################################
+#################### Calculation of the NACS ####################
+#################################################################
+
+NACs = np.zeros((numEigStates, numEigStates, nucDim))
+
+axNAC = axEignVals.twinx()
+colors=["violet", "mediumorchid", "indigo"]
+
+iAux = 0
+for i in range(numEigStates):
+    lapElec = np.matmul(op.kin(nucDim, M, nucDx), np.transpose(elecEigenstates[:, i, :]))
+    for j in range(i, numEigStates):
+        for k in range(nucDim):
+            NACs[i, j, k] = simpson(elecEigenstates[:, j, k] * lapElec[k, :], dx=elecDx)
+        NACs[j, i, :] = NACs[i, j, :]
+        if i != j:
+            axNAC.plot(nucSpace, NACs[i, j, :], color=colors[iAux], label="NAC {}-{}".format(i,j))
+            iAux += 1
+
+axNAC.legend()
+axNAC.set_ylabel(r"NACs (Bohr$^-1$)")
+
+plt.tight_layout()
 plt.show()
 
 #################################################################
