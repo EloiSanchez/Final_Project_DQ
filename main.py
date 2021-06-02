@@ -125,7 +125,6 @@ for i in range(1, nucDim):
         if aux<limit:
             elecEigenstates[:,j,i]*=-1
 
-
 figEign = plt.figure(figsize=(6.4*2, 4.8))
 axEignVals = figEign.add_subplot(121)
 axEignStates = figEign.add_subplot(122)
@@ -173,6 +172,9 @@ for i in range(numEigStates):
 
 axNAC.legend()
 axNAC.set_ylabel(r"NACs (Bohr$^-1$)")
+
+figFullPot.savefig("FullPotential.png", dpi=600)
+figEign.savefig("Eigen.png", dpi=600)
 
 plt.tight_layout()
 plt.show()
