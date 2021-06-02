@@ -42,10 +42,6 @@ def softCoulomb(pos1, pos2, rC):
     rC : (float) Paramater of the soft-core Coulomb potential
     """
     x = np.abs(pos1 - pos2) / rC
-    result = np.where(x <= 1e-6,                          # Condition
+    return np.where(x <= 1e-6,                          # Condition
         2 * (1 - (x ** 2) / 3) / (rC * np.sqrt(np.pi)),   # If True
         erf(x) / (rC * x))                                # If False
-    if np.ndim(pos1) == 1:
-        return np.diag(result)
-    else:
-        return result

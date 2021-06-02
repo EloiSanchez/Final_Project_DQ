@@ -103,8 +103,8 @@ colorBar = figFullPot.colorbar(imf, format="%.2f")
 ########### Diagonalization of electronic hamiltonian ###########
 #################################################################
 
-potLeft = op.softCoulomb(elecSpace, -L/2, leftR)
-potRight = op.softCoulomb(elecSpace, L/2, rightR)
+potLeft = np.diag(op.softCoulomb(elecSpace, -L/2, leftR))
+potRight = np.diag(op.softCoulomb(elecSpace, L/2, rightR))
 
 elecHam = op.kin(elecDim, 1, elecDx) - potLeft - potRight # + potential operators to be done
 
@@ -113,7 +113,7 @@ elecEigenstates = np.zeros((elecDim, numEigStates, nucDim))
 elecEigenvalues = np.zeros((numEigStates, nucDim))
 
 for i in range(nucDim):
-    elecHamR.append(elecHam - op.softCoulomb(elecSpace, nucSpace[i], elecNucR))
+    elecHamR.append(elecHam - np.diag(op.softCoulomb(elecSpace, nucSpace[i], elecNucR)))
     elecEigenvalues[:,i], elecEigenstates[:,:,i] = eigh(elecHamR[i], subset_by_index=[0, numEigStates - 1])
     for j in range(numEigStates):
         elecEigenstates[:,j,i] /= np.sqrt(simpson(elecEigenstates[:,j,i] * elecEigenstates[:,j,i], dx=elecDx))
@@ -173,10 +173,37 @@ for i in range(numEigStates):
 axNAC.legend()
 axNAC.set_ylabel(r"NACs (Bohr$^-1$)")
 
-figFullPot.savefig("FullPotential.png", dpi=600)
-figEign.savefig("Eigen.png", dpi=600)
+# figFullPot.savefig("FullPotential.png", dpi=600)
+# figEign.savefig("Eigen.png", dpi=600)
 
 plt.tight_layout()
-plt.show()
+# plt.show()
 
 #################################################################
+
+#################################################################
+############################ Dynamics ###########################
+#################################################################
+rn0=-7.
+sigma=1./np.sqrt(2.85)
+phi_n=np.sqrt(np.sqrt(2)/(sigma*np.sqrt(np.pi)))*np.exp(-(nucSpace-rn0)**2/sigma**2)  # vector R elements
+
+phi_e=elecEigenstates[:,1,:]  # Dimensio rxR
+
+phi_ini = phi_n * phi_e  # Dimensio rxR
+
+phi = phi_ini.flatten()  # vector de r*R elements
+
+#print(np.sum(phi*phi)*nucDx*elecDx)
+
+# Kinetic part
+hamiltonian = np.kron(op.kin(elecDim, 1, elecDx), nucEye) + np.kron(elecEye, op.kin(nucDim, M, nucDx))
+
+# Electron - fixed ion Interaciton
+hamiltonian -= np.diag(np.transpose(np.broadcast_to(op.softCoulomb(elecSpace, -L/2, leftR) + \
+                op.softCoulomb(elecSpace, L/2, rightR), (nucDim, elecDim))).flatten())
+
+# Electron - proton Interaction
+hamiltonian -= np.diag(op.softCoulomb(elecMeshGrid, nucMeshGrid, elecNucR).flatten())
+
+print(np.shape(hamiltonian))
