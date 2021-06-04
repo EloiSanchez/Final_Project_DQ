@@ -177,10 +177,10 @@ for i in range(numEigStates):
 axNAC.legend()
 axNAC.set_ylabel(r"NACs (Bohr$^-1$)")
 
+plt.tight_layout()
 # figFullPot.savefig("FullPotential.png", dpi=600)
 # figEign.savefig("Eigen.png", dpi=600)
 
-plt.tight_layout()
 # plt.show()
 
 #################################################################
