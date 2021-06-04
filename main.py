@@ -1,10 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy.core import numeric
-from numpy.core.numeric import full
+import scipy.sparse as sparse
 from scipy.integrate import simpson
 from scipy.linalg import eigh
-import helperFuncs as hf
+import Funcs as f
 import operators as op
 
 #################################################################
@@ -17,13 +16,13 @@ L = 19. # Distance between the fixed ions
 M = 1863. #Proton mass
 
 # Electron grid
-elecDim = 401
+elecDim = 101
 elecSpace = np.linspace(-L, L, elecDim)
 elecDx = elecSpace[1] - elecSpace[0]
 elecEye = np.identity(elecDim)
 
 # Nucleus grid
-nucDim = 201
+nucDim = 101
 nucSpace = np.linspace(-L/2, L/2, nucDim)
 nucDx = nucSpace[1] - nucSpace[0]
 nucEye = np.identity(nucDim)
@@ -32,6 +31,11 @@ nucEye = np.identity(nucDim)
 leftR = 4.4
 rightR = 3.1
 elecNucR = 7.
+
+# Dynamic parameters
+dt = 0.001
+tMax = 0.01
+iMax = int(tMax / dt)
 
 #################################################################
 
@@ -184,9 +188,9 @@ plt.tight_layout()
 #################################################################
 ############################ Dynamics ###########################
 #################################################################
-rn0=-7.
-sigma=1./np.sqrt(2.85)
-phi_n=np.sqrt(np.sqrt(2)/(sigma*np.sqrt(np.pi)))*np.exp(-(nucSpace-rn0)**2/sigma**2)  # vector R elements
+rn0 = -7.
+sigma = 1. / np.sqrt(2.85)
+phi_n = np.sqrt(np.sqrt(2) / (sigma * np.sqrt(np.pi))) * np.exp(-(nucSpace - rn0)**2 / sigma**2)  # vector R elements
 
 phi_e=elecEigenstates[:,1,:]  # Dimensio rxR
 
@@ -194,16 +198,19 @@ phi_ini = phi_n * phi_e  # Dimensio rxR
 
 phi = phi_ini.flatten()  # vector de r*R elements
 
-#print(np.sum(phi*phi)*nucDx*elecDx)
-
 # Kinetic part
-hamiltonian = np.kron(op.kin(elecDim, 1, elecDx), nucEye) + np.kron(elecEye, op.kin(nucDim, M, nucDx))
-
-# Electron - fixed ion Interaciton
-hamiltonian -= np.diag(np.transpose(np.broadcast_to(op.softCoulomb(elecSpace, -L/2, leftR) + \
-                op.softCoulomb(elecSpace, L/2, rightR), (nucDim, elecDim))).flatten())
+hamiltonian = sparse.kron(op.kin(elecDim, 1, elecDx), nucEye) + sparse.kron(elecEye, op.kin(nucDim, M, nucDx))
 
 # Electron - proton Interaction
-hamiltonian -= np.diag(op.softCoulomb(elecMeshGrid, nucMeshGrid, elecNucR).flatten())
+hamiltonian -= sparse.diags(op.softCoulomb(elecMeshGrid, nucMeshGrid, elecNucR).flatten())
 
-print(np.shape(hamiltonian))
+# Electron - fixed ion Interaciton
+hamiltonian -= sparse.diags(np.transpose(np.broadcast_to(op.softCoulomb(elecSpace, -L/2, leftR) + \
+                op.softCoulomb(elecSpace, L/2, rightR), (nucDim, elecDim))).flatten())
+
+t = 0
+for i in range(iMax):
+    t = dt * (i + 1)
+    phi = f.rk4(phi, dt, hamiltonian)
+    phiNorm = f.norm(phi, elecDx, nucDx)
+    print(phiNorm)
