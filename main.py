@@ -16,15 +16,15 @@ L = 19. # Distance between the fixed ions
 M = 1863. #Proton mass
 
 # Electron grid
-elecDim = 101
-elecSpace = np.linspace(-L, L, elecDim)
-elecDx = elecSpace[1] - elecSpace[0]
+elecDx = 0.1
+elecDim = round(6*L / elecDx + 1)
+elecSpace = np.arange(-3*L, 3*L + elecDx, elecDx)
 elecEye = np.identity(elecDim)
 
 # Nucleus grid
-nucDim = 101
-nucSpace = np.linspace(-L/2, L/2, nucDim)
-nucDx = nucSpace[1] - nucSpace[0]
+nucDx = 0.1
+nucDim = round(L / nucDx + 1)
+nucSpace = np.arange(-L/2, L/2 + nucDx, nucDx)
 nucEye = np.identity(nucDim)
 
 # Interaction parameters
