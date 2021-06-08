@@ -16,13 +16,13 @@ L = 19. # Distance between the fixed ions
 M = 1863. #Proton mass
 
 # Electron grid
-elecDx = 0.1
-elecDim = round(6*L / elecDx + 1)
-elecSpace = np.arange(-3*L, 3*L + elecDx, elecDx)
+elecDx = 0.2
+elecDim = round(4*L / elecDx + 1)
+elecSpace = np.arange(-2*L, 2*L + elecDx, elecDx)
 elecEye = np.identity(elecDim)
 
 # Nucleus grid
-nucDx = 0.1
+nucDx = 0.2
 nucDim = round(L / nucDx + 1)
 nucSpace = np.arange(-L/2, L/2 + nucDx, nucDx)
 nucEye = np.identity(nucDim)
@@ -33,9 +33,10 @@ rightR = 3.1
 elecNucR = 7.
 
 # Dynamic parameters
-dt = 0.001
-tMax = 0.01
-iMax = int(tMax / dt)
+dt = 0.01  # Atomic units
+tMax = 20  # Femtoseconds
+AtomicToFs = 2.4189e-2
+iMax = int(tMax / (dt * AtomicToFs))
 
 #################################################################
 
@@ -192,7 +193,7 @@ rn0 = -7.
 sigma = 1. / np.sqrt(2.85)
 phi_n = np.sqrt(np.sqrt(2) / (sigma * np.sqrt(np.pi))) * np.exp(-(nucSpace - rn0)**2 / sigma**2)  # vector R elements
 
-phi_e=elecEigenstates[:,1,:]  # Dimensio rxR
+phi_e = elecEigenstates[:,1,:]  # Dimensio rxR
 
 phi_ini = phi_n * phi_e  # Dimensio rxR
 
@@ -207,10 +208,28 @@ hamiltonian -= sparse.diags(op.softCoulomb(elecMeshGrid, nucMeshGrid, elecNucR).
 # Electron - fixed ion Interaciton
 hamiltonian -= sparse.diags(np.transpose(np.broadcast_to(op.softCoulomb(elecSpace, -L/2, leftR) + \
                 op.softCoulomb(elecSpace, L/2, rightR), (nucDim, elecDim))).flatten())
-
+plt.show()
+quit()
 t = 0
+phiSave = np.zeros_like(phi)
 for i in range(iMax):
+    if i % 100 == 0: print(i)
     t = dt * (i + 1)
-    phi = f.rk4(phi, dt, hamiltonian)
-    phiNorm = f.norm(phi, elecDx, nucDx)
-    print(phiNorm)
+    phiNew = f.rk4(phi, dt, hamiltonian)
+    phi = np.copy(phiNew)
+    # nucFuncs = f.getBO(phi, elecEigenstates, elecDx)
+    if (i + 1) % 10000 == 0:
+        print("At time {} we are in iter {}".format(t * AtomicToFs,i))
+        redProbElec, redProbNuc = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
+        print(np.sum(redProbElec)*elecDx, np.sum(redProbNuc)*nucDx)
+        plt.plot(nucSpace, redProbNuc, label="nuc")
+        plt.plot(elecSpace, redProbElec, label="elec")
+        plt.legend()
+        plt.xlim(-10, 10)
+        plt.show()
+        phiNorm = f.norm(phi, elecDx, nucDx)
+        print(phiNorm)
+        print(np.sum(elecSpace*redProbElec)*elecDx)
+        print(np.sum(nucSpace*redProbNuc)*nucDx)
+        # print((np.real(np.conj(phiSave)*phiSave)-np.real(np.conj(phi)*phi)).reshape(elecDim,nucDim)[:,10])
+        phiSave = phi.copy()

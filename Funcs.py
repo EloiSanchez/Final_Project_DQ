@@ -11,7 +11,6 @@ def norm(wf, dr, dR):
     """
     return np.sum(wf * np.conj(wf)) * dr * dR
 
-
 def normalize(wf, dx):
     """
     wf : A wavefunction (not a probability density)
@@ -37,3 +36,15 @@ def rk4(wavefun, dt, H):
     k4 = hFun(wavefun + dt * k3, H)
 
     return wavefun + dt / 6 * (k1 + 2 * (k2 + k3) + k4)
+
+def getBO(wavefun, elecStates, dr):
+    nucStates = np.zeros_like(elecStates)
+
+    return nucStates
+
+def getRedProbs(wavefun, elecDim, nucDim, dr, dR):
+    dens = np.conj(wavefun) * wavefun
+    dens = dens.reshape((elecDim, nucDim))
+    redProbElec = np.sum(dens, axis=1) * dR
+    redProbNuc = np.sum(dens, axis=0) * dr
+    return redProbElec, redProbNuc
