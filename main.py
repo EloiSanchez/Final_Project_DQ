@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import scipy.sparse as sparse
 from scipy.integrate import simpson
 from scipy.linalg import eigh
@@ -84,29 +85,29 @@ colorBar = figFullPot.colorbar(imf, format="%.2f")
 #################################################################
 
 ##################################################################
-######################### Laplacian test #########################
-##################################################################
+    ######################### Laplacian test #########################
+    ##################################################################
 
-# y = np.sin(elecSpace)
-# ddy = np.matmul(op.sixth_laplacian(elecDim, elecSpace[1] - elecSpace[0]), y)
-# anal = -np.sin(elecSpace)
+    # y = np.sin(elecSpace)
+    # ddy = np.matmul(op.sixth_laplacian(elecDim, elecSpace[1] - elecSpace[0]), y)
+    # anal = -np.sin(elecSpace)
 
-# fig = plt.figure()
-# ax = fig.add_subplot()
+    # fig = plt.figure()
+    # ax = fig.add_subplot()
 
-# ax.plot(elecSpace, y, label="func")
-# ax.plot(elecSpace, ddy, label="ddy")
-# ax.plot(elecSpace, anal, label="analytical")
+    # ax.plot(elecSpace, y, label="func")
+    # ax.plot(elecSpace, ddy, label="ddy")
+    # ax.plot(elecSpace, anal, label="analytical")
 
-# ax.legend()
+    # ax.legend()
 
-# fig.savefig("foto.png")
+    # fig.savefig("foto.png")
 
-##################################################################
+    ##################################################################
 
-#################################################################
-########### Diagonalization of electronic hamiltonian ###########
-#################################################################
+    #################################################################
+    ########### Diagonalization of electronic hamiltonian ###########
+    #################################################################
 
 potLeft = np.diag(op.softCoulomb(elecSpace, -L/2, leftR))
 potRight = np.diag(op.softCoulomb(elecSpace, L/2, rightR))
@@ -132,24 +133,32 @@ for i in range(1, nucDim):
 
 figEign = plt.figure(figsize=(6.4*2, 4.8))
 axEignVals = figEign.add_subplot(121)
-axEignStates = figEign.add_subplot(122)
+# axEignStates = Axes3D(figEign)
+axEignStates = figEign.add_subplot(122, projection='3d')
 
 elecEigenvalues += 1 / np.abs(nucSpace - L/2) + 1 / np.abs(nucSpace + L/2)
-
+# cmaps = ['YlGnBu', 'YlOrRd', 'YlGn']
+cmaps = ['winter', 'autumn', 'summer']
 for i in range(numEigStates):
     axEignVals.plot(nucSpace, elecEigenvalues[i,:], label="state {}".format(i))
-    axEignStates.plot(elecSpace, elecEigenstates[:,i,nucDim//2]**2, label=r"$|\Psi_{}|^2$".format(i))
+    axEignStates.plot_surface(elecMeshGrid, nucMeshGrid, elecEigenstates[:,i,:]**2 + 0.3*i, \
+        label=r"$|\Psi_{}|^2$".format(i), ccount=25 , cmap=cmaps[i])
 
 axEignVals.set_ylim((-0.25,0.1))
 axEignVals.legend()
 axEignVals.set_title("BOPES")
-axEignVals.set_xlabel(r"$R$ (a.u)")
+axEignVals.set_xlabel(r"$R$ (a.u.)")
 axEignVals.set_ylabel("Energy (a.u.)")
 
-axEignStates.legend()
-axEignStates.set_title(r"Eigenstates with $R={}$".format(nucSpace[nucDim//2]))
-axEignStates.set_ylabel(r"Probability densities (Bohr$^-1$)")
-axEignStates.set_xlabel(r"$r$ (a.u)")
+# axEignStates.legend()
+axEignStates.set_title(r"Eigenstates")
+axEignStates.set_zlabel(r"Probability densities (Bohr$^{-1}$)")
+axEignStates.set_xlabel(r"$r$ (a.u.)")
+axEignStates.set_ylabel(r"$R$ (a.u.)")
+# axEignStates.set_xtics(15)
+# axEignStates.set_ytics(5)
+# axEignStates.set_xlim3d((-20, 20))
+axEignStates.view_init(elev=10., azim=295)
 
 # plt.show()
 
@@ -181,7 +190,6 @@ axNAC.set_ylabel(r"NACs (Bohr$^-1$)")
 plt.tight_layout()
 # figFullPot.savefig("FullPotential.png", dpi=600)
 # figEign.savefig("Eigen.png", dpi=600)
-
 # plt.show()
 
 #################################################################
@@ -209,7 +217,7 @@ hamiltonian -= sparse.diags(op.softCoulomb(elecMeshGrid, nucMeshGrid, elecNucR).
 hamiltonian -= sparse.diags(np.transpose(np.broadcast_to(op.softCoulomb(elecSpace, -L/2, leftR) + \
                 op.softCoulomb(elecSpace, L/2, rightR), (nucDim, elecDim))).flatten())
 plt.show()
-quit()
+
 t = 0
 phiSave = np.zeros_like(phi)
 for i in range(iMax):
