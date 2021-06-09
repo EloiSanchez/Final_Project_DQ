@@ -17,17 +17,17 @@ L = 19. # Distance between the fixed ions
 M = 1863. #Proton mass
 
 # Electron grid
-elecDx = 0.2
-elecFactSpace = 4
+elecDx = 0.6
+elecFactSpace = 6
 elecDim = round(elecFactSpace * L / elecDx + 1)
-elecSpace = np.arange(-elecFactSpace * L / 2, elecFactSpace * L / 2 + elecDx, elecDx)
+elecSpace = np.linspace(-elecFactSpace * L / 2, elecFactSpace * L / 2, elecDim)
 elecEye = np.identity(elecDim)
 
 # Nucleus grid
-nucDx = 0.2
+nucDx = 0.06
 nucFactSpace = 1.5
 nucDim = round(nucFactSpace * L / nucDx + 1)
-nucSpace = np.arange(-nucFactSpace * L / 2, nucFactSpace * L / 2 + nucDx, nucDx)
+nucSpace = np.linspace(-nucFactSpace * L / 2, nucFactSpace * L / 2, nucDim)
 nucEye = np.identity(nucDim)
 
 # Interaction parameters
@@ -36,18 +36,18 @@ rightR = 3.1
 elecNucR = 7.
 
 # Dynamic parameters
-dt = 0.01  # Atomic units
+dt = 0.1  # Atomic units
 tMax = 20  # Femtoseconds
 AtomicToFs = 2.4189e-2
 iMax = int(tMax / (dt * AtomicToFs))
 
 print("==================  INITIAL  CONDITIONS  ==================")
 print(" ELECTRON SPACE")
-print("  xmin = {:5.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
-print("  xmax = {:5.3f} \t  N = {}".format(elecSpace[-1], elecDim))
+print("  xmin = {:8.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
+print("  xmax = {:8.3f} \t  N = {}".format(elecSpace[-1], elecDim))
 print("\n NUCLUEAR SPACE")
-print("  xmin = {:5.3f} \t dx = {:5.3f}".format(nucSpace[0], nucDx))
-print("  xmax = {:5.3f} \t  N = {}".format(nucSpace[-1], nucDim))
+print("  xmin = {:8.3f} \t dx = {:5.3f}".format(nucSpace[0], nucDx))
+print("  xmax = {:8.3f} \t  N = {}".format(nucSpace[-1], nucDim))
 print("\n DYNAMIC PARAMETERS")
 print("  dt = {} a.u.    total time = {} fs".format(dt, tMax))
 print("  number of iterations = {}".format(iMax))
@@ -217,12 +217,12 @@ t = 0
 phiSave = np.zeros_like(phi)
 print("=======================  DYNAMICS  ========================")
 for i in range(iMax):
-    if i % 100 == 0: print("Current state {:.3f} %".format(i / iMax * 100), end="\r", flush=True)
+    if i % 10 == 0: print("Current state {:.3f} %".format(i / iMax * 100), end="\r", flush=True)
     t = dt * (i + 1)
     phiNew = f.rk4(phi, dt, hamiltonian)
     phi = np.copy(phiNew)
     # nucFuncs = f.getBO(phi, elecEigenstates, elecDx)
-    if (i + 1) % 10000 == 0:
+    if (i + 1) % 1000 == 0:
         print("At time {} fs we are in iter {}".format(t * AtomicToFs,i))
         elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
         print(np.sum(elecRedProb)*elecDx, np.sum(nucRedProb)*nucDx)
