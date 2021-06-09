@@ -18,14 +18,16 @@ M = 1863. #Proton mass
 
 # Electron grid
 elecDx = 0.2
-elecDim = round(4*L / elecDx + 1)
-elecSpace = np.arange(-2*L, 2*L + elecDx, elecDx)
+elecFactSpace = 4
+elecDim = round(elecFactSpace * L / elecDx + 1)
+elecSpace = np.arange(-elecFactSpace * L / 2, elecFactSpace * L / 2 + elecDx, elecDx)
 elecEye = np.identity(elecDim)
 
 # Nucleus grid
 nucDx = 0.2
-nucDim = round(L / nucDx + 1)
-nucSpace = np.arange(-L/2, L/2 + nucDx, nucDx)
+nucFactSpace = 1.5
+nucDim = round(nucFactSpace * L / nucDx + 1)
+nucSpace = np.arange(-nucFactSpace * L / 2, nucFactSpace * L / 2 + nucDx, nucDx)
 nucEye = np.identity(nucDim)
 
 # Interaction parameters
@@ -38,6 +40,20 @@ dt = 0.01  # Atomic units
 tMax = 20  # Femtoseconds
 AtomicToFs = 2.4189e-2
 iMax = int(tMax / (dt * AtomicToFs))
+
+print("="*50)
+print(" ELECTRON SPACE")
+print("  xmin = {:5.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
+print("  xmax = {:5.3f} \t  N = {}".format(elecSpace[-1], elecDim))
+print("\n NUCLUEAR SPACE")
+print("  xmin = {:5.3f} \t dx = {:5.3f}".format(nucSpace[0], nucDx))
+print("  xmax = {:5.3f} \t  N = {}".format(nucSpace[-1], nucDim))
+print("\n DYNAMIC PARAMETERS")
+print("  dt = {} a.u.    total time = {} fs".format(dt, tMax))
+print("  number of iterations = {}".format(iMax))
+print("\n INTERACTION PARAMETERS")
+print("  Rl = {}\tRr = {}\tRf = {}".format(leftR, rightR, elecNucR))
+print("="*50)
 
 #################################################################
 
