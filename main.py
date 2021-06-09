@@ -15,7 +15,7 @@ import operators as op
 # Control parameters
 numEigStates = 3 # Number of eigenstates to find
 L = 19. # Distance between the fixed ions
-M = 1863. # roton mass
+M = 1863. # proton mass
 
 # Electron grid
 elecDx = 0.6
@@ -26,7 +26,7 @@ elecEye = np.identity(elecDim)
 
 # Nucleus grid
 nucDx = 0.06
-nucFactSpace = 1.5
+nucFactSpace = 0.95
 nucDim = round(nucFactSpace * L / nucDx + 1)
 nucSpace = np.linspace(-nucFactSpace * L / 2, nucFactSpace * L / 2, nucDim)
 nucEye = np.identity(nucDim)
@@ -38,6 +38,7 @@ elecNucR = 7.
 
 # Dynamic parameters
 dt = 0.1  # Atomic units
+printEvery = 20
 tMax = 20  # Femtoseconds
 AtomicToFs = 2.4189e-2
 iMax = int(tMax / (dt * AtomicToFs))
@@ -46,7 +47,7 @@ print("==================  INITIAL  CONDITIONS  ==================")
 print("\t ELECTRON SPACE")
 print("\t  xmin = {:8.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
 print("\t  xmax = {:8.3f} \t  N = {}".format(elecSpace[-1], elecDim))
-print("\n\t NUCLUEAR SPACE")
+print("\n\t NUCLEAR SPACE")
 print("\t  xmin = {:8.3f} \t dx = {:5.3f}".format(nucSpace[0], nucDx))
 print("\t  xmax = {:8.3f} \t  N = {}".format(nucSpace[-1], nucDim))
 print("\n\t DYNAMIC PARAMETERS")
@@ -131,35 +132,34 @@ for i in range(1, nucDim):
         if aux<limit:
             elecEigenstates[:,j,i]*=-1
 
-figEign = plt.figure(figsize=(6.4*2, 4.8))
-axEignVals = figEign.add_subplot(121)
-# axEignStates = Axes3D(figEign)
-axEignStates = figEign.add_subplot(122, projection='3d')
+figEignVals = plt.figure()
+axEignVals = figEignVals.add_subplot(111)
+figEignStates = plt.figure(figsize=(6.4, 4.8*1.5))
+axEignStates = [figEignStates.add_subplot(11 + 100*numEigStates + i) for i in range(numEigStates)]
 
 elecEigenvalues += 1 / np.abs(nucSpace - L/2) + 1 / np.abs(nucSpace + L/2)
-# cmaps = ['YlGnBu', 'YlOrRd', 'YlGn']
-cmaps = ['winter', 'autumn', 'summer']
+cmaps = ['Blues', 'Oranges', 'Greens', 'Purples', 'Reds', 'Yellows', 'Greys']
 for i in range(numEigStates):
-    axEignVals.plot(nucSpace, elecEigenvalues[i,:], label="state {}".format(i))
-    axEignStates.plot_surface(elecMeshGrid, nucMeshGrid, elecEigenstates[:,i,:]**2 + 0.3*i, \
-        label=r"$|\Psi_{}|^2$".format(i), ccount=25 , cmap=cmaps[i])
+    axEignVals.plot(nucSpace, elecEigenvalues[i,:], label=r"$\varphi_{}$".format(i))
+    axEignStates[i].contourf(nucMeshGrid, elecMeshGrid, elecEigenstates[:,i,:]**2, \
+    cmap=cmaps[i])
 
 axEignVals.set_ylim((-0.25,0.1))
 axEignVals.legend()
 axEignVals.set_title("BOPES")
-axEignVals.set_xlabel(r"$R$ (a.u.)")
+axEignVals.set_xlabel(r"$r$ (a.u.)")
 axEignVals.set_ylabel("Energy (a.u.)")
 
-# axEignStates.legend()
-axEignStates.set_title(r"Eigenstates")
-axEignStates.set_zlabel(r"Probability densities (Bohr$^{-1}$)")
-axEignStates.set_xlabel(r"$r$ (a.u.)")
-axEignStates.set_ylabel(r"$R$ (a.u.)")
+[axEignStates[i].set_title(r"Eigenstate $|\varphi_{}|^2$".format(i)) for i in range(numEigStates)]
+axEignStates[-1].set_xlabel(r"$R$ (a.u.)")
+[axEignStates[i].set_ylabel(r"$r$ (a.u.)") for i in range(numEigStates)]
+[axEignStates[i].set_ylim((-1.5 * L/2, 1.5 * L/2)) for i in range(numEigStates)]
 # axEignStates.set_xtics(15)
 # axEignStates.set_ytics(5)
 # axEignStates.set_xlim3d((-20, 20))
-axEignStates.view_init(elev=10., azim=295)
+# axEignStates.view_init(elev=10., azim=295)
 
+plt.tight_layout()
 # plt.show()
 
 ###############################################################################
@@ -190,8 +190,9 @@ axNAC.legend()
 axNAC.set_ylabel(r"NACs (Bohr$^-1$)")
 
 plt.tight_layout()
-# figFullPot.savefig("FullPotential.png", dpi=600)
-# figEign.savefig("Eigen.png", dpi=600)
+figFullPot.savefig("FullPotential.png", dpi=600)
+figEignVals.savefig("EigenVals.png", dpi=600)
+figEignStates.savefig("EigenStates.png", dpi=600)
 # plt.show()
 
 print("\n===========================================================\n")
@@ -223,7 +224,9 @@ hamiltonian -= sparse.diags(op.softCoulomb(elecMeshGrid, nucMeshGrid, elecNucR).
 # Electron - fixed ion Interaciton
 hamiltonian -= sparse.diags(np.transpose(np.broadcast_to(op.softCoulomb(elecSpace, -L/2, leftR) + \
                 op.softCoulomb(elecSpace, L/2, rightR), (nucDim, elecDim))).flatten())
-plt.show()
+
+hamiltonian += sparse.diags(np.broadcast_to(1 / np.abs(nucSpace - L/2) + 1 / np.abs(nucSpace + L/2), (elecDim, nucDim)).flatten())
+# plt.show()
 
 t = 0
 phiSave = np.zeros_like(phi)
@@ -232,32 +235,20 @@ elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
 nucRedProbAll = [nucRedProb]
 elecRedProbAll = [elecRedProb]
 timeAll = [0]
+nucStates = f.getBO(phi, elecEigenstates, numEigStates, nucDim, elecDim, elecDx)
+nucPopAll = [np.sum(np.conj(nucStates) * nucStates, axis=0) * nucDx]
 
 for i in range(iMax):
     if i % 10 == 0: print("\tCurrent state {:.3f} %".format(i / iMax * 100), end="\r", flush=True)
     phiNew = f.rk4(phi, dt, hamiltonian)
     phi = np.copy(phiNew)
-    # nucFuncs = f.getBO(phi, elecEigenstates, elecDx)
-    # if (i + 1) % 1000 == 0:
-    #     print("At time {} fs we are in iter {}".format(t * AtomicToFs,i))
-    #     elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
-    #     print(np.sum(elecRedProb)*elecDx, np.sum(nucRedProb)*nucDx)
-    #     plt.plot(nucSpace, np.real(nucRedProb), label="nuc")
-    #     plt.plot(elecSpace, np.real(elecRedProb), label="elec")
-    #     plt.legend()
-    #     plt.xlim(-10, 10)
-    #     plt.show()
-    #     phiNorm = f.norm(phi, elecDx, nucDx)
-    #     print(phiNorm)
-    #     print(np.sum(elecSpace*elecRedProb)*elecDx)
-    #     print(np.sum(nucSpace*nucRedProb)*nucDx)
-    #     # print((np.real(np.conj(phiSave)*phiSave)-np.real(np.conj(phi)*phi)).reshape(elecDim,nucDim)[:,10])
-    #     phiSave = phi.copy()
-    if (i + 1) % 25 == 0:
+    if (i + 1) % printEvery == 0:
         t = dt * (i + 1)
         elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
         nucRedProbAll.append(nucRedProb)
         elecRedProbAll.append(elecRedProb)
+        nucStates = f.getBO(phi, elecEigenstates, numEigStates, nucDim, elecDim, elecDx)
+        nucPopAll.append(np.sum(np.conj(nucStates) * nucStates, axis=0) * nucDx)
         timeAll.append(t * AtomicToFs)
 
 ###############################################################################
@@ -266,23 +257,39 @@ for i in range(iMax):
 ################################## Animation ##################################
 ###############################################################################
 
-figAnim = plt.figure()
-axAnim = figAnim.add_subplot()
-elecAnim = axAnim.plot(elecSpace, elecRedProbAll[0], label=r"$\rho_e(r)$")
-nucAnim = axAnim.plot(nucSpace, nucRedProbAll[0], label=r"$\rho_N(R)$")
-axAnim.set_title("Time = {:.1f} fs".format(timeAll[0]))
-axAnim.legend()
+figAnim = plt.figure(figsize=(6.4, 1.3 * 4.8))
 
-def animate(i, elecProb, nucProb, time):
+axAnimWF = figAnim.add_subplot(211)
+elecAnim = axAnimWF.plot(elecSpace, elecRedProbAll[0], label=r"$\rho_e(r)$")
+nucAnim = axAnimWF.plot(nucSpace, nucRedProbAll[0], label=r"$\rho_N(R)$")
+axAnimWF.set_title("Time = {:.1f} fs".format(timeAll[0]))
+axAnimWF.legend()
+axAnimWF.set_xlim(-1.5 * L/2, 1.5 * L/2)
+axAnimWF.set_ylim(0,np.max(nucRedProbAll)+0.05)
+axAnimWF.set_xlabel('R and r (a.u.)')
+
+nucPopAll = np.array(nucPopAll)
+axAnimPop = figAnim.add_subplot(212)
+nucPlots = [axAnimPop.plot(timeAll[0], nucPopAll[0,i], label=r"State {}".format(i)) for i in range(numEigStates)]
+axAnimPop.set_xlim((0,tMax))
+axAnimPop.set_yscale('log')
+axAnimPop.set_ylim((1e-5, 2))
+axAnimPop.set_xlabel('Time (ps)')
+axAnimPop.set_ylabel(r'$|\langle \chi_i(r) | \Psi(r,R) \rangle|^2$')
+axAnimPop.legend(loc='lower center')
+
+def animate(i, elecProb, nucProb, pops, time):
     elecAnim[0].set_ydata(elecProb[i])
     nucAnim[0].set_ydata(nucProb[i])
-    axAnim.set_title("Time = {:.1f} fs".format(time[i]))
+    axAnimWF.set_title("Time = {:.1f} fs".format(time[i]))
+
+    [nucPlots[j][0].set_data(timeAll[:i], pops[:i,j]) for j in range(numEigStates)]
 
 animation = FuncAnimation(
     figAnim, 
     animate, 
-    frames = int(iMax / 25), 
-    fargs = (elecRedProbAll, nucRedProbAll, timeAll),
+    frames = range(1, int(iMax / printEvery) + 1), 
+    fargs = (elecRedProbAll, nucRedProbAll, nucPopAll, timeAll),
     interval = 33.3
     )
 
@@ -291,5 +298,3 @@ animation.save(
     dpi = 300, 
     progress_callback = lambda j, n: print(f'\tSaving frame {j} of {n}', end="\r", flush=True)
     )
-
-plt.show()

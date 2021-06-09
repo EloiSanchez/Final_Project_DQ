@@ -37,11 +37,18 @@ def rk4(wavefun, dt, H):
 
     return wavefun + dt / 6 * (k1 + 2 * (k2 + k3) + k4)
 
-def getBO(wavefun, elecStates, dr):
+def getBO(wavefun, elecStates, numEigstates, nucDim, elecDim, dr):
     """
-    work in progress
+    wavefun : The full-space wavefunction
+    elecStates : Electronic eigenstates considered
+    numEigstates : nº of states considered
+    nucDim, elecDim : Number of gridpoints for elec and nuc
+    dr : Space step in electron space
     """
-    nucStates = np.zeros_like(elecStates)
+    wavefunMat = wavefun.reshape((elecDim, nucDim))
+    nucStates = np.zeros((nucDim, numEigstates), dtype=np.complex64)
+    for i in range(numEigstates):
+        nucStates[:,i] = np.sum(np.conj(elecStates[:,i,:] * wavefunMat), axis=0) * dr
     return nucStates
 
 def getRedProbs(wavefun, elecDim, nucDim, dr, dR):
