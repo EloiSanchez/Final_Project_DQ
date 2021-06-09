@@ -100,30 +100,9 @@ colorBar = figFullPot.colorbar(imf, format="%.2f")
 
 #################################################################
 
-##################################################################
-    ######################### Laplacian test #########################
-    ##################################################################
-
-    # y = np.sin(elecSpace)
-    # ddy = np.matmul(op.sixth_laplacian(elecDim, elecSpace[1] - elecSpace[0]), y)
-    # anal = -np.sin(elecSpace)
-
-    # fig = plt.figure()
-    # ax = fig.add_subplot()
-
-    # ax.plot(elecSpace, y, label="func")
-    # ax.plot(elecSpace, ddy, label="ddy")
-    # ax.plot(elecSpace, anal, label="analytical")
-
-    # ax.legend()
-
-    # fig.savefig("foto.png")
-
-    ##################################################################
-
-    #################################################################
-    ########### Diagonalization of electronic hamiltonian ###########
-    #################################################################
+#################################################################
+########### Diagonalization of electronic hamiltonian ###########
+#################################################################
 
 potLeft = np.diag(op.softCoulomb(elecSpace, -L/2, leftR))
 potRight = np.diag(op.softCoulomb(elecSpace, L/2, rightR))
