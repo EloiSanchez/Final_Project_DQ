@@ -38,11 +38,19 @@ def rk4(wavefun, dt, H):
     return wavefun + dt / 6 * (k1 + 2 * (k2 + k3) + k4)
 
 def getBO(wavefun, elecStates, dr):
+    """
+    work in progress
+    """
     nucStates = np.zeros_like(elecStates)
-
     return nucStates
 
 def getRedProbs(wavefun, elecDim, nucDim, dr, dR):
+    """
+    Get reduced probabilities
+    wavefun : The full-space wavefunction
+    elecDim, nucDim : Number of gridpoints for elec and nuc
+    dr, dR : Space steps in electron and nuclear space
+    """
     dens = np.conj(wavefun) * wavefun
     dens = dens.reshape((elecDim, nucDim))
     redProbElec = np.sum(dens, axis=1) * dR

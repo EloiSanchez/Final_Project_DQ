@@ -41,7 +41,7 @@ tMax = 20  # Femtoseconds
 AtomicToFs = 2.4189e-2
 iMax = int(tMax / (dt * AtomicToFs))
 
-print("="*50)
+print("==================  INITIAL  CONDITIONS  ==================")
 print(" ELECTRON SPACE")
 print("  xmin = {:5.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
 print("  xmax = {:5.3f} \t  N = {}".format(elecSpace[-1], elecDim))
@@ -53,7 +53,7 @@ print("  dt = {} a.u.    total time = {} fs".format(dt, tMax))
 print("  number of iterations = {}".format(iMax))
 print("\n INTERACTION PARAMETERS")
 print("  Rl = {}\tRr = {}\tRf = {}".format(leftR, rightR, elecNucR))
-print("="*50)
+print("===========================================================\n")
 
 #################################################################
 
@@ -236,18 +236,19 @@ plt.show()
 
 t = 0
 phiSave = np.zeros_like(phi)
+print("=======================  DYNAMICS  ========================")
 for i in range(iMax):
-    if i % 100 == 0: print(i)
+    if i % 100 == 0: print("Current state {:.3f} %".format(i / iMax * 100), end="\r", flush=True)
     t = dt * (i + 1)
     phiNew = f.rk4(phi, dt, hamiltonian)
     phi = np.copy(phiNew)
     # nucFuncs = f.getBO(phi, elecEigenstates, elecDx)
     if (i + 1) % 10000 == 0:
-        print("At time {} we are in iter {}".format(t * AtomicToFs,i))
+        print("At time {} fs we are in iter {}".format(t * AtomicToFs,i))
         redProbElec, redProbNuc = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
         print(np.sum(redProbElec)*elecDx, np.sum(redProbNuc)*nucDx)
-        plt.plot(nucSpace, redProbNuc, label="nuc")
-        plt.plot(elecSpace, redProbElec, label="elec")
+        plt.plot(nucSpace, np.real(redProbNuc), label="nuc")
+        plt.plot(elecSpace, np.real(redProbElec), label="elec")
         plt.legend()
         plt.xlim(-10, 10)
         plt.show()
