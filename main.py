@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 import scipy.sparse as sparse
 from scipy.integrate import simpson
@@ -14,7 +15,7 @@ import operators as op
 # Control parameters
 numEigStates = 3 # Number of eigenstates to find
 L = 19. # Distance between the fixed ions
-M = 1863. #Proton mass
+M = 1863. # roton mass
 
 # Electron grid
 elecDx = 0.6
@@ -42,17 +43,17 @@ AtomicToFs = 2.4189e-2
 iMax = int(tMax / (dt * AtomicToFs))
 
 print("==================  INITIAL  CONDITIONS  ==================")
-print(" ELECTRON SPACE")
-print("  xmin = {:8.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
-print("  xmax = {:8.3f} \t  N = {}".format(elecSpace[-1], elecDim))
-print("\n NUCLUEAR SPACE")
-print("  xmin = {:8.3f} \t dx = {:5.3f}".format(nucSpace[0], nucDx))
-print("  xmax = {:8.3f} \t  N = {}".format(nucSpace[-1], nucDim))
-print("\n DYNAMIC PARAMETERS")
-print("  dt = {} a.u.    total time = {} fs".format(dt, tMax))
-print("  number of iterations = {}".format(iMax))
-print("\n INTERACTION PARAMETERS")
-print("  Rl = {}\tRr = {}\tRf = {}".format(leftR, rightR, elecNucR))
+print("\t ELECTRON SPACE")
+print("\t  xmin = {:8.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
+print("\t  xmax = {:8.3f} \t  N = {}".format(elecSpace[-1], elecDim))
+print("\n\t NUCLUEAR SPACE")
+print("\t  xmin = {:8.3f} \t dx = {:5.3f}".format(nucSpace[0], nucDx))
+print("\t  xmax = {:8.3f} \t  N = {}".format(nucSpace[-1], nucDim))
+print("\n\t DYNAMIC PARAMETERS")
+print("\t  dt = {} a.u.    total time = {} fs".format(dt, tMax))
+print("\t  number of iterations = {}".format(iMax))
+print("\n\t INTERACTION PARAMETERS")
+print("\t  Rl = {}\tRr = {}\tRf = {}".format(leftR, rightR, elecNucR))
 print("===========================================================\n")
 
 ###############################################################################
@@ -60,7 +61,9 @@ print("===========================================================\n")
 ###############################################################################
 ####################  Finding the potential in full-space  ####################
 ###############################################################################
+print("=======================  STATICS  =========================")
 
+print("\n\tCalculating the full-space potential and plot.")
 # Obtain X and Y
 [nucMeshGrid, elecMeshGrid] = np.meshgrid(nucSpace, elecSpace)  
 
@@ -103,6 +106,8 @@ colorBar = figFullPot.colorbar(imf, format="%.2f")
 ###############################################################################
 ################## Diagonalization of electronic hamiltonian ##################
 ###############################################################################
+
+print("\n\tDiagonalizing electronic hamiltonian.")
 
 potLeft = np.diag(op.softCoulomb(elecSpace, -L/2, leftR))
 potRight = np.diag(op.softCoulomb(elecSpace, L/2, rightR))
@@ -163,6 +168,8 @@ axEignStates.view_init(elev=10., azim=295)
 ########################### Calculation of the NACS ###########################
 ###############################################################################
 
+print("\n\tCalculating non-adiabatic couplings.")
+
 NACs = np.zeros((numEigStates, numEigStates, nucDim))
 
 axNAC = axEignVals.twinx()
@@ -187,11 +194,16 @@ plt.tight_layout()
 # figEign.savefig("Eigen.png", dpi=600)
 # plt.show()
 
+print("\n===========================================================\n")
+
 ###############################################################################
 
 ###############################################################################
 ################################### Dynamics ##################################
 ###############################################################################
+
+print("=======================  DYNAMICS  ========================")
+
 rn0 = -7.
 sigma = 1. / np.sqrt(2.85)
 phi_n = np.sqrt(np.sqrt(2) / (sigma * np.sqrt(np.pi))) * np.exp(-(nucSpace - rn0)**2 / sigma**2)  # vector R elements
@@ -215,25 +227,69 @@ plt.show()
 
 t = 0
 phiSave = np.zeros_like(phi)
-print("=======================  DYNAMICS  ========================")
+# Get time 0
+elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
+nucRedProbAll = [nucRedProb]
+elecRedProbAll = [elecRedProb]
+timeAll = [0]
+
 for i in range(iMax):
-    if i % 10 == 0: print("Current state {:.3f} %".format(i / iMax * 100), end="\r", flush=True)
-    t = dt * (i + 1)
+    if i % 10 == 0: print("\tCurrent state {:.3f} %".format(i / iMax * 100), end="\r", flush=True)
     phiNew = f.rk4(phi, dt, hamiltonian)
     phi = np.copy(phiNew)
     # nucFuncs = f.getBO(phi, elecEigenstates, elecDx)
-    if (i + 1) % 1000 == 0:
-        print("At time {} fs we are in iter {}".format(t * AtomicToFs,i))
+    # if (i + 1) % 1000 == 0:
+    #     print("At time {} fs we are in iter {}".format(t * AtomicToFs,i))
+    #     elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
+    #     print(np.sum(elecRedProb)*elecDx, np.sum(nucRedProb)*nucDx)
+    #     plt.plot(nucSpace, np.real(nucRedProb), label="nuc")
+    #     plt.plot(elecSpace, np.real(elecRedProb), label="elec")
+    #     plt.legend()
+    #     plt.xlim(-10, 10)
+    #     plt.show()
+    #     phiNorm = f.norm(phi, elecDx, nucDx)
+    #     print(phiNorm)
+    #     print(np.sum(elecSpace*elecRedProb)*elecDx)
+    #     print(np.sum(nucSpace*nucRedProb)*nucDx)
+    #     # print((np.real(np.conj(phiSave)*phiSave)-np.real(np.conj(phi)*phi)).reshape(elecDim,nucDim)[:,10])
+    #     phiSave = phi.copy()
+    if (i + 1) % 25 == 0:
+        t = dt * (i + 1)
         elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
-        print(np.sum(elecRedProb)*elecDx, np.sum(nucRedProb)*nucDx)
-        plt.plot(nucSpace, np.real(nucRedProb), label="nuc")
-        plt.plot(elecSpace, np.real(elecRedProb), label="elec")
-        plt.legend()
-        plt.xlim(-10, 10)
-        plt.show()
-        phiNorm = f.norm(phi, elecDx, nucDx)
-        print(phiNorm)
-        print(np.sum(elecSpace*elecRedProb)*elecDx)
-        print(np.sum(nucSpace*nucRedProb)*nucDx)
-        # print((np.real(np.conj(phiSave)*phiSave)-np.real(np.conj(phi)*phi)).reshape(elecDim,nucDim)[:,10])
-        phiSave = phi.copy()
+        nucRedProbAll.append(nucRedProb)
+        elecRedProbAll.append(elecRedProb)
+        timeAll.append(t * AtomicToFs)
+
+###############################################################################
+
+###############################################################################
+################################## Animation ##################################
+###############################################################################
+
+figAnim = plt.figure()
+axAnim = figAnim.add_subplot()
+elecAnim = axAnim.plot(elecSpace, elecRedProbAll[0], label=r"$\rho_e(r)$")
+nucAnim = axAnim.plot(nucSpace, nucRedProbAll[0], label=r"$\rho_N(R)$")
+axAnim.set_title("Time = {:.1f} fs".format(timeAll[0]))
+axAnim.legend()
+
+def animate(i, elecProb, nucProb, time):
+    elecAnim[0].set_ydata(elecProb[i])
+    nucAnim[0].set_ydata(nucProb[i])
+    axAnim.set_title("Time = {:.1f} fs".format(time[i]))
+
+animation = FuncAnimation(
+    figAnim, 
+    animate, 
+    frames = int(iMax / 25), 
+    fargs = (elecRedProbAll, nucRedProbAll, timeAll),
+    interval = 33.3
+    )
+
+animation.save(
+    "Results.mp4", 
+    dpi = 300, 
+    progress_callback = lambda j, n: print(f'\tSaving frame {j} of {n}', end="\r", flush=True)
+    )
+
+plt.show()
