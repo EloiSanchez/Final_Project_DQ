@@ -8,48 +8,33 @@ from scipy.integrate import simpson
 from scipy.linalg import eigh
 import Funcs as f
 import operators as op
+from input import *
 
 ###############################################################################
 #########################  Input & System parameters  #########################
 ###############################################################################
 
-# Control parameters
-numEigStates = 3 # Number of eigenstates to find
-L = 19. # Distance between the fixed ions
-M = 1863. # proton mass
-
 # Electron grid
-elecDx = 0.6
-elecFactSpace = 6
 elecDim = round(elecFactSpace * L / elecDx + 1)
 elecSpace = np.linspace(-elecFactSpace * L / 2, elecFactSpace * L / 2, elecDim)
 elecEye = np.identity(elecDim)
+elecDx = elecSpace[1] - elecSpace[0]
 
 # Nucleus grid
-nucDx = 0.06
-nucFactSpace = 0.99
 nucDim = round(nucFactSpace * L / nucDx + 1)
 nucSpace = np.linspace(-nucFactSpace * L / 2, nucFactSpace * L / 2, nucDim)
 nucEye = np.identity(nucDim)
-
-# Interaction parameters
-leftR = 4.4
-rightR = 3.1
-elecNucR = 7.
+nucDx = nucSpace[1] - nucSpace[0]
 
 # Dynamic parameters
-dt = 0.1  # Atomic units
-printEvery = 20
-tMax = 20  # Femtoseconds
-AtomicToFs = 2.4189e-2
 iMax = int(tMax / (dt * AtomicToFs))
 
 print("==================  INITIAL  CONDITIONS  ==================")
 print("\t ELECTRON SPACE")
-print("\t  xmin = {:8.3f} \t dx = {:5.3f}".format(elecSpace[0], elecDx))
+print("\t  xmin = {:8.3f} \t dx = {:7.5f}".format(elecSpace[0], elecDx))
 print("\t  xmax = {:8.3f} \t  N = {}".format(elecSpace[-1], elecDim))
 print("\n\t NUCLEAR SPACE")
-print("\t  xmin = {:8.3f} \t dx = {:5.3f}".format(nucSpace[0], nucDx))
+print("\t  xmin = {:8.3f} \t dx = {:7.5f}".format(nucSpace[0], nucDx))
 print("\t  xmax = {:8.3f} \t  N = {}".format(nucSpace[-1], nucDim))
 print("\n\t DYNAMIC PARAMETERS")
 print("\t  dt = {} a.u.    total time = {} fs".format(dt, tMax))
@@ -57,6 +42,8 @@ print("\t  number of iterations = {}".format(iMax))
 print("\n\t INTERACTION PARAMETERS")
 print("\t  Rl = {}\tRr = {}\tRf = {}".format(leftR, rightR, elecNucR))
 print("===========================================================\n")
+
+np.seterr(all='ignore')
 
 ###############################################################################
 
@@ -256,6 +243,7 @@ for i in range(iMax):
         timeAll.append(t * AtomicToFs)
 
 print("\tFinished Dynamics of {} femtoseconds.".format(tMax))
+print("\tThe final norm is {}.".format(f.norm(phi, elecDx,nucDx)))
 
 nucPopAll = np.array(nucPopAll)
 DecDynAll = np.array(DecDynAll)
@@ -271,13 +259,15 @@ print("\n===========================================================\n")
 print("=======================  ANIMATION  =======================\n")
 
 figAnim = plt.figure(figsize=(6.4, 1.3 * 4.8))
+figAnim.subplots_adjust(hspace=0.3) 
 
 axAnimWF = figAnim.add_subplot(211)
-figAnim.subplots_adjust(hspace=0.3) 
+axAnimWF.axvline(x = -L / 2, color='gray', label='ions')
+axAnimWF.axvline(x = L / 2, color='gray')
 elecAnim = axAnimWF.plot(elecSpace, elecRedProbAll[0], label=r"$\rho_e(r)$")
 nucAnim = axAnimWF.plot(nucSpace, nucRedProbAll[0], label=r"$\rho_N(R)$")
 axAnimWF.set_title("Time = {:.1f} fs".format(timeAll[0]))
-axAnimWF.legend()
+axAnimWF.legend(loc='upper left', fontsize='x-small')
 axAnimWF.set_xlim(-1.5 * L/2, 1.5 * L/2)
 axAnimWF.set_ylim(0,np.max(nucRedProbAll)+0.05)
 axAnimWF.set_xlabel('R and r (Bohr)')

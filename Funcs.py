@@ -9,8 +9,8 @@ def norm(wf, dr, dR):
     dR : Space step for the nucleus
     return : Scalar with the norm
     """
-    return np.sum(wf * np.conj(wf)) * dr * dR
-
+    return np.real(np.sum(wf * np.conj(wf)) * dr * dR)
+    
 def normalize(wf, dx):
     """
     wf : A wavefunction (not a probability density)
