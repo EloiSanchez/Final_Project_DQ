@@ -60,6 +60,19 @@ def getRedProbs(wavefun, elecDim, nucDim, dr, dR):
     """
     dens = np.conj(wavefun) * wavefun
     dens = dens.reshape((elecDim, nucDim))
-    redProbElec = np.sum(dens, axis=1) * dR
-    redProbNuc = np.sum(dens, axis=0) * dr
+    redProbElec = np.real(np.sum(dens, axis=1) * dR)
+    redProbNuc = np.real(np.sum(dens, axis=0) * dr)
     return redProbElec, redProbNuc
+
+def getDecDyn(nucStates, N, dR):
+    """
+    Get elements of the upper triangular matrix as (ex. with N=3) 11 12 13 22 23 33
+    nucstates : Nuclear wavefunctions
+    N : Number of eigenstates
+    dR : Space step in nuclear space
+    """
+    DecDyn = []
+    for i in range(N):
+        for j in range(i + 1, N):
+            DecDyn.append(np.abs(np.sum((np.conj(nucStates[:,i]) * nucStates[:,j])) * dR))
+    return DecDyn

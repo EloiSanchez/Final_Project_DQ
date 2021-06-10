@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
+from numpy.core import numeric
 import scipy.sparse as sparse
 from scipy.integrate import simpson
 from scipy.linalg import eigh
@@ -26,7 +27,7 @@ elecEye = np.identity(elecDim)
 
 # Nucleus grid
 nucDx = 0.06
-nucFactSpace = 0.95
+nucFactSpace = 0.99
 nucDim = round(nucFactSpace * L / nucDx + 1)
 nucSpace = np.linspace(-nucFactSpace * L / 2, nucFactSpace * L / 2, nucDim)
 nucEye = np.identity(nucDim)
@@ -139,10 +140,14 @@ axEignStates = [figEignStates.add_subplot(11 + 100*numEigStates + i) for i in ra
 
 elecEigenvalues += 1 / np.abs(nucSpace - L/2) + 1 / np.abs(nucSpace + L/2)
 cmaps = ['Blues', 'Oranges', 'Greens', 'Purples', 'Reds', 'Yellows', 'Greys']
+imEigs = []
 for i in range(numEigStates):
     axEignVals.plot(nucSpace, elecEigenvalues[i,:], label=r"$\varphi_{}$".format(i))
-    axEignStates[i].contourf(nucMeshGrid, elecMeshGrid, elecEigenstates[:,i,:]**2, \
-    cmap=cmaps[i])
+    imEigs.append(axEignStates[i].contourf(nucMeshGrid, elecMeshGrid, elecEigenstates[:,i,:]**2, \
+    cmap=cmaps[i]))
+    axEignStates[i].contour(nucMeshGrid, elecMeshGrid, elecEigenstates[:,i,:]**2,
+                            colors="black", linewidths=0.3, linestyles="solid")
+[figEignStates.colorbar(imEigs[i], format="%.2f", ax=axEignStates[i]) for i in range(numEigStates)]
 
 axEignVals.set_ylim((-0.25,0.1))
 axEignVals.legend()
@@ -154,10 +159,6 @@ axEignVals.set_ylabel("Energy (a.u.)")
 axEignStates[-1].set_xlabel(r"$R$ (a.u.)")
 [axEignStates[i].set_ylabel(r"$r$ (a.u.)") for i in range(numEigStates)]
 [axEignStates[i].set_ylim((-1.5 * L/2, 1.5 * L/2)) for i in range(numEigStates)]
-# axEignStates.set_xtics(15)
-# axEignStates.set_ytics(5)
-# axEignStates.set_xlim3d((-20, 20))
-# axEignStates.view_init(elev=10., azim=295)
 
 plt.tight_layout()
 # plt.show()
@@ -203,7 +204,7 @@ print("\n===========================================================\n")
 ################################### Dynamics ##################################
 ###############################################################################
 
-print("=======================  DYNAMICS  ========================")
+print("=======================  DYNAMICS  ========================\n")
 
 rn0 = -7.
 sigma = 1. / np.sqrt(2.85)
@@ -230,16 +231,18 @@ hamiltonian += sparse.diags(np.broadcast_to(1 / np.abs(nucSpace - L/2) + 1 / np.
 
 t = 0
 phiSave = np.zeros_like(phi)
-# Get time 0
+
+# Measure time 0
 elecRedProb, nucRedProb = f.getRedProbs(phi, elecDim, nucDim, elecDx, nucDx)
 nucRedProbAll = [nucRedProb]
 elecRedProbAll = [elecRedProb]
 timeAll = [0]
 nucStates = f.getBO(phi, elecEigenstates, numEigStates, nucDim, elecDim, elecDx)
-nucPopAll = [np.sum(np.conj(nucStates) * nucStates, axis=0) * nucDx]
+nucPopAll = [np.sum(np.real(np.conj(nucStates) * nucStates), axis=0) * nucDx]
+DecDynAll = [f.getDecDyn(nucStates, numEigStates, nucDx)]
 
 for i in range(iMax):
-    if i % 10 == 0: print("\tCurrent state {:.3f} %".format(i / iMax * 100), end="\r", flush=True)
+    if i % 10 == 0: print("\tCurrent state {:.1f} %".format(i / iMax * 100), end="\r", flush=True)
     phiNew = f.rk4(phi, dt, hamiltonian)
     phi = np.copy(phiNew)
     if (i + 1) % printEvery == 0:
@@ -248,8 +251,16 @@ for i in range(iMax):
         nucRedProbAll.append(nucRedProb)
         elecRedProbAll.append(elecRedProb)
         nucStates = f.getBO(phi, elecEigenstates, numEigStates, nucDim, elecDim, elecDx)
-        nucPopAll.append(np.sum(np.conj(nucStates) * nucStates, axis=0) * nucDx)
+        nucPopAll.append(np.sum(np.real(np.conj(nucStates) * nucStates), axis=0) * nucDx)
+        DecDynAll.append(f.getDecDyn(nucStates, numEigStates, nucDx))
         timeAll.append(t * AtomicToFs)
+
+print("\tFinished Dynamics of {} femtoseconds.".format(tMax))
+
+nucPopAll = np.array(nucPopAll)
+DecDynAll = np.array(DecDynAll)
+
+print("\n===========================================================\n")
 
 ###############################################################################
 
@@ -257,39 +268,57 @@ for i in range(iMax):
 ################################## Animation ##################################
 ###############################################################################
 
+print("=======================  ANIMATION  =======================\n")
+
 figAnim = plt.figure(figsize=(6.4, 1.3 * 4.8))
 
 axAnimWF = figAnim.add_subplot(211)
+figAnim.subplots_adjust(hspace=0.3) 
 elecAnim = axAnimWF.plot(elecSpace, elecRedProbAll[0], label=r"$\rho_e(r)$")
 nucAnim = axAnimWF.plot(nucSpace, nucRedProbAll[0], label=r"$\rho_N(R)$")
 axAnimWF.set_title("Time = {:.1f} fs".format(timeAll[0]))
 axAnimWF.legend()
 axAnimWF.set_xlim(-1.5 * L/2, 1.5 * L/2)
 axAnimWF.set_ylim(0,np.max(nucRedProbAll)+0.05)
-axAnimWF.set_xlabel('R and r (a.u.)')
+axAnimWF.set_xlabel('R and r (Bohr)')
+axAnimWF.set_ylabel(r'PDF (Bohr$^{-1}$)')
 
-nucPopAll = np.array(nucPopAll)
-axAnimPop = figAnim.add_subplot(212)
+axAnimPop = figAnim.add_subplot(223)
 nucPlots = [axAnimPop.plot(timeAll[0], nucPopAll[0,i], label=r"State {}".format(i)) for i in range(numEigStates)]
 axAnimPop.set_xlim((0,tMax))
 axAnimPop.set_yscale('log')
 axAnimPop.set_ylim((1e-5, 2))
-axAnimPop.set_xlabel('Time (ps)')
+axAnimPop.set_xlabel('Time (fs)')
 axAnimPop.set_ylabel(r'$|\langle \chi_i(r) | \Psi(r,R) \rangle|^2$')
-axAnimPop.legend(loc='lower center')
+axAnimPop.legend(loc='lower center', fontsize='x-small')
 
-def animate(i, elecProb, nucProb, pops, time):
+decDymLabels = []
+for i in range(numEigStates):
+    for j in range(i + 1, numEigStates):
+        decDymLabels.append('{}{}'.format(i,j))
+        
+axAnimDec = figAnim.add_subplot(224)
+decPlots = [axAnimDec.plot(timeAll[0], DecDynAll[0,i], label=r"D$_{%s}$" %(decDymLabels[i])) for i in range(len(decDymLabels))]
+axAnimDec.set_ylim((0, np.max(DecDynAll)))
+axAnimDec.set_xlim((0, tMax))
+axAnimDec.legend(loc="upper right", fontsize='x-small')
+axAnimDec.set_xlabel("Time (fs)")
+axAnimDec.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+
+def animate(i, elecProb, nucProb, pops, DecDynAll, time):
     elecAnim[0].set_ydata(elecProb[i])
     nucAnim[0].set_ydata(nucProb[i])
     axAnimWF.set_title("Time = {:.1f} fs".format(time[i]))
 
     [nucPlots[j][0].set_data(timeAll[:i], pops[:i,j]) for j in range(numEigStates)]
 
+    [decPlots[j][0].set_data(timeAll[:i], DecDynAll[:i,j]) for j in range(len(decDymLabels))]
+
 animation = FuncAnimation(
     figAnim, 
     animate, 
     frames = range(1, int(iMax / printEvery) + 1), 
-    fargs = (elecRedProbAll, nucRedProbAll, nucPopAll, timeAll),
+    fargs = (elecRedProbAll, nucRedProbAll, nucPopAll, DecDynAll, timeAll),
     interval = 33.3
     )
 
@@ -298,3 +327,11 @@ animation.save(
     dpi = 300, 
     progress_callback = lambda j, n: print(f'\tSaving frame {j} of {n}', end="\r", flush=True)
     )
+
+print("\tFinished Animation        ")
+
+print("\n===========================================================\n")
+
+###############################################################################
+
+print("\tNORMAL TERMINATION\n")
