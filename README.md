@@ -20,8 +20,8 @@ Simulate to 20 fs
 
 ## Contributors
 
-| Laia Barjuan                                                                    |Eloi Sanchez                                                                   |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| Laia Barjuan                          |Eloi Sanchez                                |
+| --------------------------------------| ------------------------------------------ |
 | ![laiabarjuan](https://avatars.githubusercontent.com/u/79266111 "laiabarjuan") | ![EloiSanchez](https://avatars.githubusercontent.com/u/79266117 "EloiSanchez") |
 | [laiabarjuan](https://github.com/laiabarjuan)                                 | [EloiSanchez](https://github.com/EloiSanchez)                                  |
 
