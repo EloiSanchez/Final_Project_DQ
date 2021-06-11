@@ -1,6 +1,6 @@
 # Final_Project_DQ
 
-The code of this github page performs a quantum dynamics simulation using the Shin-Metiu model (dynamics of a proton and an electron under the potential created by two fixes ions) and outputs different observables from the simulation. The results include:
+The code of this github page performs a quantum dynamics simulation using the Shin-Metiu model (dynamics of a proton and an electron under the potential created by two fixed ions) and outputs different observables from the simulation. The results include:
 
 - Plot of the BOPES with the second order non-adiabatic couplings (NAC)
 - Plot of adiabatic electronic States
