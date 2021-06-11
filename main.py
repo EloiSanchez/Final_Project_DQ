@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 from numpy.core import numeric
+import os
 import scipy.sparse as sparse
 from scipy.integrate import simpson
 from scipy.linalg import eigh
@@ -13,6 +14,29 @@ from input import *
 ###############################################################################
 #########################  Input & System parameters  #########################
 ###############################################################################
+
+# Check if there are any problems for directory results and create it
+if os.path.exists(resultsDir):
+    dirControl = True
+    while dirControl:
+        choice = input("""
+The directory {} already exists. I want to... 
+    ...rename the results directory (R)
+    ...overwrite the existing directory (O)
+    ...exit program (X)
+>> """.format(resultsDir)).lower().strip()
+        if choice.startswith('r'):
+            resultsDir = input('\nIntroduce new directory >> ')
+            os.makedirs(resultsDir)
+            dirControl = False
+        elif choice.startswith('o'):
+            print('\nOverwriting existing directory.')
+            dirControl = False
+        elif choice.startswith('x'):
+            print('\nNORMAL TERMINATION\n')
+            quit()
+else:
+    os.makedirs(resultsDir)
 
 # Electron grid
 elecDim = round(elecFactSpace * L / elecDx + 1)
@@ -29,7 +53,7 @@ nucDx = nucSpace[1] - nucSpace[0]
 # Dynamic parameters
 iMax = int(tMax / (dt * AtomicToFs))
 
-print("==================  INITIAL  CONDITIONS  ==================")
+print("\n==================  INITIAL  CONDITIONS  ==================")
 print("\t ELECTRON SPACE")
 print("\t  xmin = {:8.3f} \t dx = {:7.5f}".format(elecSpace[0], elecDx))
 print("\t  xmax = {:8.3f} \t  N = {}".format(elecSpace[-1], elecDim))
@@ -178,9 +202,9 @@ axNAC.legend()
 axNAC.set_ylabel(r"NACs (Bohr$^-1$)")
 
 plt.tight_layout()
-figFullPot.savefig("FullPotential.png", dpi=600)
-figEignVals.savefig("EigenVals.png", dpi=600)
-figEignStates.savefig("EigenStates.png", dpi=600)
+figFullPot.savefig(resultsDir + "/FullPotential.png", dpi=600)
+figEignVals.savefig(resultsDir + "/EigenVals.png", dpi=600)
+figEignStates.savefig(resultsDir + "/EigenStates.png", dpi=600)
 # plt.show()
 
 print("\n===========================================================\n")
@@ -311,7 +335,7 @@ animation = FuncAnimation(
     )
 
 animation.save(
-    "Results.mp4", 
+    resultsDir + "/Results.mp4", 
     dpi = 300, 
     progress_callback = lambda j, n: print(f'\tSaving frame {j} of {n}', end="\r", flush=True)
     )

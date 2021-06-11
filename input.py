@@ -29,3 +29,6 @@ sigma = 1. / (2.85)**(0.5)
 # Initial Electronic Eigenstate
 # = 0 (GS); = 1 (1st excited), = 2 (2nd excited), etc.
 initEigenstate = 1
+
+# Directory name to save the results
+resultsDir = 'default'
