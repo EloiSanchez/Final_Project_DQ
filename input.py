@@ -21,3 +21,11 @@ dt = 0.1  # Atomic units
 printEvery = 20
 tMax = 50  # Femtoseconds
 AtomicToFs = 2.4189e-2
+
+# Initial Gaussian wavepacket conditions
+rn0 = -7.
+sigma = 1. / (2.85)**(0.5)
+
+# Initial Electronic Eigenstate
+# = 0 (GS); = 1 (1st excited), = 2 (2nd excited), etc.
+initEigenstate = 1
