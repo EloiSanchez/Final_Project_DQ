@@ -15,8 +15,8 @@ The results aim to reproduce the ones from: Albareda, Guillermo, et al. "Correla
 - Funcs.py : rellevant functions such as normalization or rk4 integrator
 - operators.py : important operators such as the laplacian and the soft-core Coulomb interaction term
 
-## Notes
-Simulate to 20 fs
+## Usage
+The desired input parameters can be modified in the `input.py` file. To run the program one must type in the terminal: `python3 main.py`. After performing a simulation the results will be stored in the directory specified in the input file. 
 
 ## Contributors
 
