@@ -193,11 +193,9 @@ print("\n===========================================================\n")
 
 print("=======================  DYNAMICS  ========================\n")
 
-rn0 = -7.
-sigma = 1. / np.sqrt(2.85)
 phi_n = np.sqrt(np.sqrt(2) / (sigma * np.sqrt(np.pi))) * np.exp(-(nucSpace - rn0)**2 / sigma**2)  # vector R elements
 
-phi_e = elecEigenstates[:,1,:]  # Dimensio rxR
+phi_e = elecEigenstates[:,initEigenstate,:]  # Dimensio rxR
 
 phi_ini = phi_n * phi_e  # Dimensio rxR
 
