@@ -2,10 +2,10 @@
 
 The code of this github page performs a quantum dynamics simulation using the Shin-Metiu model (dynamics of a proton and an electron under the potential created by two fixed ions) and outputs different observables from the simulation. The results include:
 
-- Plot of the BOPES with the second order non-adiabatic couplings (NAC)
-- Plot of adiabatic electronic States
+- Plot of the BOPES with the second order non-adiabatic couplings (NACs)
+- Plot of the adiabatic electronic States
 - Plot of the potential energy surfaces in the full-space
-- mp4 file containing the evolution of the reduced probability densities of proton and electrons, of the adiabatic populations and of the decoherence dynamics coefficients. 
+- mp4 file containing the time evolution of the reduced probability densities of proton and electrons, of the adiabatic populations and of the decoherence dynamics coefficients
 
 The results aim to reproduce the ones from: Albareda, Guillermo, et al. "Correlated electron-nuclear dynamics with conditional wave functions." Physical review letters 113.8 (2014): 083003.
 
@@ -13,7 +13,7 @@ The results aim to reproduce the ones from: Albareda, Guillermo, et al. "Correla
 - input.py : input parameters
 - main.py : main program 
 - Funcs.py : rellevant functions such as normalization or rk4 integrator
-- operators.py : important operators such as the laplacian and the soft-core Coulomb interaction term
+- operators.py : important operators such as the laplacian or the soft-core Coulomb interaction term
 
 ## Usage
 The desired input parameters can be modified in the `input.py` file. To run the program one must type in the terminal: `python3 main.py`. After performing a simulation the results will be stored in the directory specified in the input file. 
