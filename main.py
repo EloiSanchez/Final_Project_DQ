@@ -304,13 +304,13 @@ axAnimPop.set_xlabel('Time (fs)')
 axAnimPop.set_ylabel(r'$|\langle \chi_i(r) | \Psi(r,R) \rangle|^2$')
 axAnimPop.legend(loc='lower center', fontsize='x-small')
 
-decDymLabels = []
+decDynLabels = []
 for i in range(numEigStates):
     for j in range(i + 1, numEigStates):
-        decDymLabels.append('{}{}'.format(i,j))
+        decDynLabels.append('{}{}'.format(i,j))
         
 axAnimDec = figAnim.add_subplot(224)
-decPlots = [axAnimDec.plot(timeAll[0], decDynAll[0,i], label=r"D$_{%s}$" %(decDymLabels[i])) for i in range(len(decDymLabels))]
+decPlots = [axAnimDec.plot(timeAll[0], decDynAll[0,i], label=r"D$_{%s}$" %(decDynLabels[i])) for i in range(len(decDynLabels))]
 axAnimDec.set_ylim((0, np.max(decDynAll)))
 axAnimDec.set_xlim((0, tMax))
 axAnimDec.legend(loc="upper right", fontsize='x-small')
@@ -324,7 +324,7 @@ def animate(i, elecProb, nucProb, pops, decDynAll, time):
 
     [nucPlots[j][0].set_data(timeAll[:i], pops[:i,j]) for j in range(numEigStates)]
 
-    [decPlots[j][0].set_data(timeAll[:i], decDynAll[:i,j]) for j in range(len(decDymLabels))]
+    [decPlots[j][0].set_data(timeAll[:i], decDynAll[:i,j]) for j in range(len(decDynLabels))]
 
 animation = FuncAnimation(
     figAnim, 
