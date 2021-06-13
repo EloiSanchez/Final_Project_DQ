@@ -8,7 +8,7 @@ elecDx = 0.6
 elecFactSpace = 6
 
 # Nucleus grid
-nucDx = 0.03
+nucDx = 0.04
 nucFactSpace = 0.99
 
 # Interaction parameters
@@ -31,4 +31,4 @@ sigma = 1. / (2.85)**(0.5)
 initEigenstate = 1
 
 # Directory name to save the results
-resultsDir = 'default'
+resultsDir = 'firstExcited'
