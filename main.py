@@ -301,7 +301,7 @@ axAnimPop.set_xlim((0,tMax))
 axAnimPop.set_yscale('log')
 axAnimPop.set_ylim((1e-5, 2))
 axAnimPop.set_xlabel('Time (fs)')
-axAnimPop.set_ylabel(r'$|\langle \chi_i(r) | \Psi(r,R) \rangle|^2$')
+axAnimPop.set_ylabel(r'$|\langle \varphi_i(r) | \Psi(r,R) \rangle|^2$')
 axAnimPop.legend(loc='lower center', fontsize='x-small')
 
 decDynLabels = []
