@@ -193,7 +193,7 @@ for i in range(numEigStates):
     for j in range(i, numEigStates):
         for k in range(nucDim):
             NACs[i, j, k] = simpson(elecEigenstates[:, j, k] * lapElec[k, :], dx=elecDx)
-        NACs[j, i, :] = NACs[i, j, :]
+        NACs[j, i, :] = - NACs[i, j, :]
         if i != j:
             axNAC.plot(nucSpace, NACs[i, j, :], color=colors[iAux], label="NAC {}-{}".format(i,j))
             iAux += 1
