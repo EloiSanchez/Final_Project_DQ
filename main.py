@@ -248,7 +248,7 @@ elecRedProbAll = [elecRedProb]
 timeAll = [0]
 nucStates = f.getBO(phi, elecEigenstates, numEigStates, nucDim, elecDim, elecDx)
 nucPopAll = [np.sum(np.real(np.conj(nucStates) * nucStates), axis=0) * nucDx]
-DecDynAll = [f.getDecDyn(nucStates, numEigStates, nucDx)]
+decDynAll = [f.getDecDyn(nucStates, numEigStates, nucDx)]
 
 for i in range(iMax):
     if i % 10 == 0: print("\tCurrent state {:.1f} %".format(i / iMax * 100), end="\r", flush=True)
@@ -261,14 +261,14 @@ for i in range(iMax):
         elecRedProbAll.append(elecRedProb)
         nucStates = f.getBO(phi, elecEigenstates, numEigStates, nucDim, elecDim, elecDx)
         nucPopAll.append(np.sum(np.real(np.conj(nucStates) * nucStates), axis=0) * nucDx)
-        DecDynAll.append(f.getDecDyn(nucStates, numEigStates, nucDx))
+        decDynAll.append(f.getDecDyn(nucStates, numEigStates, nucDx))
         timeAll.append(t * AtomicToFs)
 
 print("\tFinished Dynamics of {} femtoseconds.".format(tMax))
 print("\tThe final norm is {}.".format(f.norm(phi, elecDx,nucDx)))
 
 nucPopAll = np.array(nucPopAll)
-DecDynAll = np.array(DecDynAll)
+decDynAll = np.array(decDynAll)
 
 print("\n===========================================================\n")
 
@@ -310,27 +310,27 @@ for i in range(numEigStates):
         decDymLabels.append('{}{}'.format(i,j))
         
 axAnimDec = figAnim.add_subplot(224)
-decPlots = [axAnimDec.plot(timeAll[0], DecDynAll[0,i], label=r"D$_{%s}$" %(decDymLabels[i])) for i in range(len(decDymLabels))]
-axAnimDec.set_ylim((0, np.max(DecDynAll)))
+decPlots = [axAnimDec.plot(timeAll[0], decDynAll[0,i], label=r"D$_{%s}$" %(decDymLabels[i])) for i in range(len(decDymLabels))]
+axAnimDec.set_ylim((0, np.max(decDynAll)))
 axAnimDec.set_xlim((0, tMax))
 axAnimDec.legend(loc="upper right", fontsize='x-small')
 axAnimDec.set_xlabel("Time (fs)")
 axAnimDec.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
 
-def animate(i, elecProb, nucProb, pops, DecDynAll, time):
+def animate(i, elecProb, nucProb, pops, decDynAll, time):
     elecAnim[0].set_ydata(elecProb[i])
     nucAnim[0].set_ydata(nucProb[i])
     axAnimWF.set_title("Time = {:.1f} fs".format(time[i]))
 
     [nucPlots[j][0].set_data(timeAll[:i], pops[:i,j]) for j in range(numEigStates)]
 
-    [decPlots[j][0].set_data(timeAll[:i], DecDynAll[:i,j]) for j in range(len(decDymLabels))]
+    [decPlots[j][0].set_data(timeAll[:i], decDynAll[:i,j]) for j in range(len(decDymLabels))]
 
 animation = FuncAnimation(
     figAnim, 
     animate, 
     frames = range(1, int(iMax / printEvery) + 1), 
-    fargs = (elecRedProbAll, nucRedProbAll, nucPopAll, DecDynAll, timeAll),
+    fargs = (elecRedProbAll, nucRedProbAll, nucPopAll, decDynAll, timeAll),
     interval = 33.3
     )
 

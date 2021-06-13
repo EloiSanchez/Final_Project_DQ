@@ -71,8 +71,8 @@ def getDecDyn(nucStates, N, dR):
     N : Number of eigenstates
     dR : Space step in nuclear space
     """
-    DecDyn = []
+    decDyn = []
     for i in range(N):
         for j in range(i + 1, N):
-            DecDyn.append(np.abs(np.sum((np.conj(nucStates[:,i]) * nucStates[:,j])) * dR))
-    return DecDyn
+            decDyn.append(np.abs(np.sum((np.conj(nucStates[:,i]) * nucStates[:,j])) * dR))
+    return decDyn
