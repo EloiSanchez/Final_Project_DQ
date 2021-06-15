@@ -163,7 +163,7 @@ for i in range(numEigStates):
 axEignVals.set_ylim((-0.25,0.1))
 axEignVals.legend()
 axEignVals.set_title("BOPES")
-axEignVals.set_xlabel(r"$r$ (a.u.)")
+axEignVals.set_xlabel(r"$R$ (a.u.)")
 axEignVals.set_ylabel("Energy (a.u.)")
 
 [axEignStates[i].set_title(r"Eigenstate $|\varphi_{}|^2$".format(i)) for i in range(numEigStates)]
