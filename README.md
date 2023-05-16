@@ -18,6 +18,20 @@ The results aim to reproduce the ones from: Albareda, Guillermo, et al. "Correla
 ## Usage
 The desired input parameters can be modified in the `input.py` file. To run the program one must type in the terminal: `python3 main.py`. After performing a simulation the results will be stored in the directory specified in the input file. 
 
+## Results for Ground State
+
+**Animation**
+
+https://github.com/EloiSanchez/Final_Project_DQ/assets/79266117/ef7b6517-7b3f-47c0-b83d-9d173d0e1d4b
+
+**Eigenstates**
+
+![Eigenstates for groundstate](https://github.com/EloiSanchez/Final_Project_DQ/blob/main/groundState/EigenStates.png)
+
+**Eigenvalues**
+
+![Eigenvalues for groundstate](https://github.com/EloiSanchez/Final_Project_DQ/blob/main/groundState/EigenVals.png)
+
 ## Contributors
 
 | Laia Barjuan                                                                   |Eloi Sanchez                                                                   |
